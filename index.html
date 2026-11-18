@@ -22,10 +22,9 @@
     .btn-sm:hover { background: #1d4ed8; }
 
     .control-panel { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 18px; }
-    .top-selects { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+    .station-row { margin-bottom: 14px; }
     .data-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
     @media (max-width: 680px) {
-      .top-selects { grid-template-columns: 1fr; }
       .data-strip { grid-template-columns: repeat(2, 1fr); }
     }
 
@@ -67,7 +66,6 @@
     table.forecast-table td.action-col { text-align: left; white-space: normal; min-width: 195px; }
     table.forecast-table tr.today-row { background: #eff6ff; font-weight: 700; }
 
-    /* 주간 사용자 평가 패널 스타일 */
     .feedback-box { background: #f8fafc; border: 1.5px solid #93c5fd; border-radius: 10px; padding: 15px 16px; margin-bottom: 16px; }
     .feedback-grid { display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; align-items: end; margin-top: 10px; }
     @media (max-width: 680px) { .feedback-grid { grid-template-columns: 1fr; } }
@@ -84,34 +82,26 @@
     <header>
       <div class="badge-row">
         <span class="badge">제주 방역업체 B2B 의사결정 지원 솔루션</span>
-        <span class="badge badge-green">7일 실측 기상 검증 + 일일 자동 갱신 7일 예보 + 주간 현장 피드백</span>
+        <span class="badge badge-green">최근 7일 실측 기상 자동 보정 + 향후 7일 주간 예보 · 딥러닝(MLP)</span>
       </div>
       <h1>제주 지역 맞춤형 AI 모기 활동 예측 및 주간 방역 준비 안내 서비스</h1>
-      <p class="sub">일주일 전 기준점과 최근 7일 실측 기상을 검증·보정한 뒤, 매일 최신 기상 예보를 반영해 오늘부터 일주일간의 모기 발생 추이와 방역 준비 방침을 안내합니다.</p>
+      <p class="sub">제주 기상 관측 지점을 선택하면 최근 7일간의 실제 기상 누적 흐름과 향후 7일 예보를 자동으로 분석하여 객관적인 모기 발생 추이와 방역 준비 방침을 안내합니다.</p>
     </header>
 
     <div class="status-bar">
-      <div class="status-text" id="weatherStatus">⏳ 제주 최근 7일 실측 기상 검증 및 향후 7일 예보를 불러오는 중...</div>
+      <div class="status-text" id="weatherStatus">⏳ 제주 최근 7일 실측 기상 및 향후 7일 예보를 불러오는 중...</div>
       <button type="button" class="btn-sm" onclick="fetchJejuWeather()">실시간 기상 동기화</button>
     </div>
 
     <div class="control-panel">
-      <div class="top-selects">
+      <div class="station-row">
         <div class="field">
-          <label for="station">제주 기상 관측 지점</label>
+          <label for="station">제주 기상 관측 지점 선택 <span>(지점 선택 시 최근 7일 실측 기상 및 향후 7일 예보 자동 반영)</span></label>
           <select id="station" onchange="fetchJejuWeather()">
             <option value="jeju">제주시 (북부 해안·도심권 관측소)</option>
             <option value="seogwipo">서귀포시 (남부 온난·습윤 관측소)</option>
             <option value="seongsan">성산 (동부 해안·습지 인접 관측소)</option>
             <option value="gosan">고산 (서부 해안·강풍권 관측소)</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="anchorStage">1주 전 기준 수준 <span>(공공 감시 또는 직전 주간 평가 반영)</span></label>
-          <select id="anchorStage" onchange="fetchJejuWeather()">
-            <option value="14.0" selected>낮음 단계 기준 (지수 14.0 시작)</option>
-            <option value="24.2">보통 단계 기준 (지수 24.2 시작)</option>
-            <option value="34.0">높음 단계 기준 (지수 34.0 시작)</option>
           </select>
         </div>
       </div>
@@ -130,13 +120,13 @@
           <input type="number" id="rain" step="0.1" min="0" oninput="predictMosquito()" />
         </div>
         <div class="field">
-          <label for="prevIndex">어제 보정 지수 <span>(7일 검증 완료)</span></label>
+          <label for="prevIndex">어제 산출 지수 <span>(최근 7일 기상 자동 보정)</span></label>
           <input type="number" id="prevIndex" step="0.1" readonly />
         </div>
       </div>
 
       <div class="validation-strip" id="validationStatus">
-        ⏳ 최근 7일(D-7 ~ 어제) 실측 기상 데이터로 예측 정합성을 검증하는 중...
+        ⏳ 최근 7일(D-7 ~ 어제) 실측 기상 데이터를 불러와 어제 기준 지수를 자동 산출하는 중...
       </div>
     </div>
 
@@ -176,7 +166,7 @@
       <div class="card-box">
         <div class="card-title">
           <span>⑤ 향후 일주일(7일) 모기 활동 추이 및 주간 방역 계획표</span>
-          <span style="font-size:11.5px; font-weight:500; color:#64748b;">매일 최신 기상 관측·예보 반영으로 자동 정교화</span>
+          <span style="font-size:11.5px; font-weight:500; color:#64748b;">매일 최신 실측 기상과 예보가 반영되어 정확도 자동 갱신</span>
         </div>
         <div class="table-wrap">
           <table class="forecast-table">
@@ -195,37 +185,37 @@
         </div>
       </div>
 
-      <!-- ⑥ 주간 현장 실적 평가 및 정확도 피드백 모듈 -->
+      <!-- ⑥ 주간 현장 정확도 및 사용자 만족도 평가 (주 1회 기록) -->
       <div class="feedback-box">
         <div class="card-title" style="margin-bottom: 4px;">
-          <span>⑥ 주간 현장 실적 평가 및 예측 정확도 피드백 (주 1회 기록)</span>
-          <span style="font-size:11.5px; font-weight:600; color:#1d4ed8;" id="pastSummaryTag">지난 7일 평균 예측: -</span>
+          <span>⑥ 주간 예측 정확도 및 현장 만족도 평가 (주 1회 사후 기록)</span>
+          <span style="font-size:11.5px; font-weight:600; color:#1d4ed8;" id="pastSummaryTag">최근 7일 분석 단계: -</span>
         </div>
         <div style="font-size:12.5px; color:#475569; line-height:1.5;">
-          현장 포충기(트랩) 수거량과 거래처 민원 건수를 바탕으로 지난 일주일 실제 모기 수준과 예측 정확도를 기록하면, 다음 주 예측 기준점이 현장 데이터로 자동 보정됩니다.
+          현장 포충기(트랩) 수거량과 거래처 민원 건수를 기준으로 지난주 AI 예측이 실제 현장 상황과 얼마나 일치했는지 평가해 주세요. (누적 정확도 통계에 반영됩니다.)
         </div>
         <div class="feedback-grid">
           <div class="field">
-            <label for="actualFieldLevel">실제 현장 모기 수준 (트랩·민원 기준)</label>
-            <select id="actualFieldLevel">
-              <option value="14.0">실제 낮음 (트랩 채집 적음 · 민원 거의 없음)</option>
-              <option value="24.2">실제 보통 (평년 수준 · 일부 구역 유충 확인)</option>
-              <option value="34.0">실제 높음 (개체수 급증 · 긴급 방역 요청 증가)</option>
+            <label for="fieldMatchResult">실제 현장 체감 일치 여부 (트랩·민원 비교)</label>
+            <select id="fieldMatchResult">
+              <option value="match">예측 단계와 실제 현장 상황 일치</option>
+              <option value="higher">실제 모기 활동이 예측보다 많았음</option>
+              <option value="lower">실제 모기 활동이 예측보다 적었음</option>
             </select>
           </div>
           <div class="field">
-            <label for="userSatisfaction">주간 AI 예측 정확도 체감 평가</label>
+            <label for="userSatisfaction">주간 서비스 만족도 및 정확도 평점</label>
             <select id="userSatisfaction">
-              <option value="5">매우 정확함 (5점 · 현장 추이와 일치)</option>
-              <option value="4">대체로 정확함 (4점 · 방역 계획에 유용)</option>
-              <option value="3">보통 (3점 · 일부 지역 편차 존재)</option>
-              <option value="2">보완 필요 (2점 · 실제와 차이 있음)</option>
+              <option value="5">5점 (매우 정확 · 방역 계획에 큰 도움)</option>
+              <option value="4">4점 (대체로 정확 · 실무 활용 우수)</option>
+              <option value="3">3점 (보통 · 일부 지역 편차 존재)</option>
+              <option value="2">2점 (보완 필요 · 실제와 차이 있음)</option>
             </select>
           </div>
-          <button type="button" class="btn-feedback" onclick="submitWeeklyFeedback()">주간 평가 저장 및 기준 보정</button>
+          <button type="button" class="btn-feedback" onclick="submitWeeklyFeedback()">주간 평가 저장</button>
         </div>
         <div class="feedback-stats" id="feedbackStatsText">
-          📊 누적 주간 평가 기록: 아직 등록된 현장 평가가 없습니다. 위 항목을 선택해 이번 주 현장 실적을 기록해 보세요.
+          📊 누적 주간 현장 평가: 아직 등록된 평가가 없습니다. 일주일마다 현장 트랩 결과를 바탕으로 정확도를 기록해 보세요.
         </div>
       </div>
 
@@ -234,7 +224,7 @@
   </div>
 
   <script>
-    const FEEDBACK_KEY = "jeju_mosquito_weekly_feedback_v1";
+    const FEEDBACK_KEY = "jeju_mosquito_weekly_eval_v2";
     let forecast7Days = [];
     let lastPastStage = "낮음";
 
@@ -314,21 +304,12 @@
         const logs = JSON.parse(raw);
         if (!Array.isArray(logs) || logs.length === 0) return;
         const total = logs.length;
-        const matched = logs.filter(item => item.predictedStage === item.actualStage).length;
+        const matched = logs.filter(item => item.matchResult === "match").length;
         const matchRate = ((matched / total) * 100).toFixed(1);
         const avgSat = (logs.reduce((acc, cur) => acc + cur.score, 0) / total).toFixed(1);
         const latest = logs[logs.length - 1];
         statsEl.textContent =
-          `📊 누적 주간 평가 ${total}회 · 현장 단계 일치율 ${matchRate}% · 평균 체감 정확도 ${avgSat}/5.0점 (최근 기록: ${latest.date} · 실제 '${latest.actualStage}' 반영됨)`;
-      } catch (e) {}
-    }
-
-    function submitWeeklyFeedback() {
-      const actualVal = parseFloat(document.getElementById("actualFieldLevel").value);
-      const actualStage = getStageInfo(actualVal).stage;
-      const satScore = parseInt(document.getElementById("userSatisfaction").value, 10);
-      const now = new Date();
-      const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+          `📊 누적 주간 현장 평가 ${total}회 · 현장 체감 일치율 ${matchRate}\% · 평균 만족도 ${avgSat}/5.0점 (최근 기록: ${latest.date})`; } catch (e) {} }  function submitWeeklyFeedback() { const matchResult = document.getElementById("fieldMatchResult").value; const satScore = parseInt(document.getElementById("userSatisfaction").value, 10); const now = new Date(); const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 
       let logs = [];
       try {
@@ -337,106 +318,61 @@
 
       logs.push({
         date: dateStr,
-        predictedStage: lastPastStage,
-        actualStage: actualStage,
-        actualVal: actualVal,
+        analyzedStage: lastPastStage,
+        matchResult: matchResult,
         score: satScore
       });
       localStorage.setItem(FEEDBACK_KEY, JSON.stringify(logs));
-
-      // 사용자가 입력한 실제 현장 수준을 1주 전 보정 기준점으로 즉시 반영해 재계산
-      document.getElementById("anchorStage").value = actualVal.toFixed(1);
       renderFeedbackStats();
-      fetchJejuWeather();
     }
 
     async function fetchJejuWeather() {
       const key = document.getElementById("station").value;
       const st = STATIONS[key];
-      const anchorVal = parseFloat(document.getElementById("anchorStage").value);
       const statusEl = document.getElementById("weatherStatus");
-      statusEl.textContent = `⏳ ${st.name} 최근 7일 실측 기상 검증 및 향후 7일 예보를 불러오는 중...`;
+      statusEl.textContent = `⏳ ${st.name} 최근 7일 실측 기상 및 향후 7일 예보를 불러오는 중...`;  try { const url = `https://api.open-meteo.com/v1/forecast?latitude=${st.lat}&longitude=${st.lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=Asia\%2FSeoul&past_days=7&forecast_days=7`; const res = await fetch(url); if (!res.ok) throw new Error("기상 데이터 응답 오류"); const data = await res.json();  const allDays = data.daily.time.map((dateStr, idx) => ({ date: dateStr, maxT: data.daily.temperature_2m_max[idx], minT: data.daily.temperature_2m_min[idx], rain: data.daily.precipitation_sum[idx] }));  // 최근 7일(D-7 ~ 어제) 실제 관측 날씨를 모델에 연속 반영해 객관적인 어제 지수 자동 산출 const past7Days = allDays.slice(0, 7); forecast7Days = allDays.slice(7, 14);  let rollingVal = SCALER_MEAN[2]; const pastPreds = []; for (const d of past7Days) { const avgT = (d.maxT + d.minT) / 2; rollingVal = runMlpStep(avgT, d.rain, rollingVal); pastPreds.push(rollingVal); }  const pastAvg = pastPreds.reduce((a, b) => a + b, 0) / pastPreds.length; lastPastStage = getStageInfo(pastAvg).stage; document.getElementById("pastSummaryTag").textContent = `최근 7일 분석 단계: ${lastPastStage} (평균 ${pastAvg.toFixed(1)})`;  document.getElementById("prevIndex").value = rollingVal.toFixed(1); document.getElementById("maxTemp").value = forecast7Days[0].maxT.toFixed(1); document.getElementById("minTemp").value = forecast7Days[0].minT.toFixed(1); document.getElementById("rain").value = forecast7Days[0].rain.toFixed(1);  document.getElementById("validationStatus").textContent = `✅ 최근 7일 실측 기상(${past7Days[0].date} ~ ${past7Days[6].date}) 누적 반영 완료 · 어제 산출 지수 ${rollingVal.toFixed(1)} 자동 확정`;
 
-      try {
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${st.lat}&longitude=${st.lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=Asia%2FSeoul&past_days=7&forecast_days=7`;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error("기상 데이터 응답 오류");
-        const data = await res.json();
+        statusEl.textContent = `✅ 실시간 기상 동기화 완료 (${st.name} ·${forecast7Days[0].date} ~ ${forecast7Days[forecast7Days.length - 1].date})`; predictMosquito(); } catch (e) { statusEl.textContent = `⚠️ 기상 서버 연결이 지연되고 있습니다. 잠시 후 동기화를 눌러주세요.`; } }  function predictMosquito() { const errorBox = document.getElementById("errorBox"); const resultBox = document.getElementById("resultBox"); errorBox.style.display = "none";  const key = document.getElementById("station").value; const st = STATIONS[key]; const maxT = parseFloat(document.getElementById("maxTemp").value); const minT = parseFloat(document.getElementById("minTemp").value); const rain = parseFloat(document.getElementById("rain").value); const prev = parseFloat(document.getElementById("prevIndex").value);  if ([maxT, minT, rain, prev].some(v => Number.isNaN(v))) { errorBox.textContent = "입력 오류: 기상 수치를 숫자로 입력해 주세요."; errorBox.style.display = "block"; resultBox.style.display = "none"; return; } if (minT > maxT) { errorBox.textContent = "입력 오류: 최저기온은 최고기온보다 높을 수 없습니다."; errorBox.style.display = "block"; resultBox.style.display = "none"; return; } if (rain < 0 \vert{}\vert{} prev < 0) { errorBox.textContent = "입력 오류: 강수량은 0 이상의 값이어야 합니다."; errorBox.style.display = "block"; resultBox.style.display = "none"; return; }  resultBox.style.display = "block";  const avgTempToday = (maxT + minT) / 2; const predToday = runMlpStep(avgTempToday, rain, prev); const todayInfo = getStageInfo(predToday);  const baseMax = forecast7Days[0] ? forecast7Days[0].maxT : maxT; const baseMin = forecast7Days[0] ? forecast7Days[0].minT : minT; const deltaMax = maxT - baseMax; const deltaMin = minT - baseMin;  const weeklyResults = []; let rollingPrev = prev; const totalDays = forecast7Days.length > 0 ? forecast7Days.length : 7;  for (let i = 0; i < totalDays; i++) { const dayMax = i === 0 ? maxT : (forecast7Days[i].maxT + deltaMax); const dayMin = i === 0 ? minT : (forecast7Days[i].minT + deltaMin); const dayRain = i === 0 ? rain : forecast7Days[i].rain; const dayDate = forecast7Days[i] ? forecast7Days[i].date.slice(5) : `+${i}일`;
+        const dayAvg = (dayMax + dayMin) / 2;
+        const dayPred = i === 0 ? predToday : runMlpStep(dayAvg, dayRain, rollingPrev);
+        const info = getStageInfo(dayPred);
 
-        const allDays = data.daily.time.map((dateStr, idx) => ({
-          date: dateStr,
-          maxT: data.daily.temperature_2m_max[idx],
-          minT: data.daily.temperature_2m_min[idx],
-          rain: data.daily.precipitation_sum[idx]
-        }));
-
-        const past7Days = allDays.slice(0, 7);
-        forecast7Days = allDays.slice(7, 14);
-
-        let rollingVal = anchorVal;
-        const pastPreds = [];
-        for (const d of past7Days) {
-          const avgT = (d.maxT + d.minT) / 2;
-          rollingVal = runMlpStep(avgT, d.rain, rollingVal);
-          pastPreds.push(rollingVal);
-        }
-
-        const pastAvg = pastPreds.reduce((a, b) => a + b, 0) / pastPreds.length;
-        lastPastStage = getStageInfo(pastAvg).stage;
-        document.getElementById("pastSummaryTag").textContent = `지난 7일 평균 예측: ${pastAvg.toFixed(1)} (${lastPastStage})`;
-
-        const anchorStage = getStageInfo(anchorVal).stage;
-        const matchedDays = pastPreds.filter(v => getStageInfo(v).stage === anchorStage).length;
-        const hitRate = ((matchedDays / pastPreds.length) * 100).toFixed(1);
-
-        document.getElementById("prevIndex").value = rollingVal.toFixed(1);
-        document.getElementById("maxTemp").value = forecast7Days[0].maxT.toFixed(1);
-        document.getElementById("minTemp").value = forecast7Days[0].minT.toFixed(1);
-        document.getElementById("rain").value = forecast7Days[0].rain.toFixed(1);
-
-        document.getElementById("validationStatus").textContent =
-          `✅ 최근 7일 검증 완료 (${past7Days[0].date} ~ ${past7Days[6].date}): 기준(${anchorVal.toFixed(1)}) 대비 실측 기상 반영 결과 단계 일치율 ${hitRate}% · 어제 보정 지수 ${rollingVal.toFixed(1)} 확정`;
-
-        statusEl.textContent = `✅ 실시간 기상 동기화 완료 (${st.name} · ${forecast7Days[0].date} ~ ${forecast7Days[forecast7Days.length - 1].date})`;
-        predictMosquito();
-      } catch (e) {
-        statusEl.textContent = `⚠️ 기상 서버 연결이 지연되고 있습니다. 잠시 후 동기화를 눌러주세요.`;
-      }
-    }
-
-    function predictMosquito() {
-      const errorBox = document.getElementById("errorBox");
-      const resultBox = document.getElementById("resultBox");
-      errorBox.style.display = "none";
-
-      const key = document.getElementById("station").value;
-      const st = STATIONS[key];
-      const maxT = parseFloat(document.getElementById("maxTemp").value);
-      const minT = parseFloat(document.getElementById("minTemp").value);
-      const rain = parseFloat(document.getElementById("rain").value);
-      const prev = parseFloat(document.getElementById("prevIndex").value);
-
-      if ([maxT, minT, rain, prev].some(v => Number.isNaN(v))) {
-        errorBox.textContent = "입력 오류: 기상 수치를 숫자로 입력해 주세요.";
-        errorBox.style.display = "block";
-        resultBox.style.display = "none";
-        return;
-      }
-      if (minT > maxT) {
-        errorBox.textContent = "입력 오류: 최저기온은 최고기온보다 높을 수 없습니다.";
-        errorBox.style.display = "block";
-        resultBox.style.display = "none";
-        return;
-      }
-      if (rain < 0 || prev < 0) {
-        errorBox.textContent = "입력 오류: 강수량은 0 이상의 값이어야 합니다.";
-        errorBox.style.display = "block";
-        resultBox.style.display = "none";
-        return;
+        weeklyResults.push({
+          dayLabel: i === 0 ? `${dayDate} (오늘)` : `${dayDate} (+${i}일)`, isToday: i === 0, tempRange: `${dayMax.toFixed(1)}℃ / ${dayMin.toFixed(1)}℃`, rain: dayRain, pred: dayPred, stage: info.stage, badgeClass: info.badgeClass, shortAction: info.shortAction }); rollingPrev = dayPred; }  const alertBanner = document.getElementById("weeklyAlertBanner"); const firstHighDay = weeklyResults.slice(1).find(r => r.pred >= 29.4); const firstMidDay = weeklyResults.slice(1).find(r => r.pred >= 19.0);  if (predToday < 29.4 && firstHighDay) { alertBanner.style.display = "block"; alertBanner.textContent = `⚠️ 주간 선제 예방 경보: 오늘은 '${todayInfo.stage}' 단계이나, ${firstHighDay.dayLabel}에 '높음(${firstHighDay.pred.toFixed(1)})' 단계 상승이 예상됩니다. 성충 급증 전 유충 구제제를 선제 투입하고 약제를 미리 발주하세요.`;
+      } else if (predToday < 19.0 && firstMidDay) {
+        alertBanner.style.display = "block";
+        alertBanner.textContent = `🔔 주간 단계 상승 예고: ${firstMidDay.dayLabel}부터 '보통(${firstMidDay.pred.toFixed(1)})' 단계 진입이 예상됩니다. 강수 후 고인 물 구역 유충 점검과 약제 재고 확인을 미리 준비하세요.`;
+      } else {
+        alertBanner.style.display = "none";
       }
 
-      resultBox.style.display = "block";
+      let timing = "정기 점검 주기 유지";
+      let volume = "평시 대비 70~80% (최소 비축)";
+      let staff = "상시 순찰 1개 조 운영";
+      let guides = [
+        "모기 활동이 낮은 단계입니다. 성충 살충제 대량 살포를 자제하여 약제 낭비와 환경 오염을 방지하세요.",
+        "하수구·물웅덩이 등 유충(장구벌레) 서식지 사전 점검 위주로 방역 인력을 운용하세요.",
+        "주간 예보에서 기온 상승이나 강수가 예정된 날 직전에 거래처(숙박·상가·공동주택) 고인 물 제거를 사전 안내하세요."
+      ];
 
-      const avgTempToday = (maxT + minT) / 2;
-      const predToday = runMlpStep(avgTempToday, rain, prev);
-      const todayInfo =
+      if (predToday >= 29.4) {
+        timing = "즉시 선제 발주 및 긴급 투입";
+        volume = "평시 대비 140~150% 집중 확보";
+        staff = "전담 방역조 증원 및 야간 교대 배치";
+        guides = [
+          "모기 활동이 급증하는 성수기 경보 단계입니다. 거래처 예약 증가에 대비해 살충·유충 구제 약제를 140% 이상 선제 확보하세요.",
+          "방역 인력을 권역별로 증원 배치하고, 특히 비 온 직후 습도가 높아진 주거지·숙박시설·하천 인근에 집중 방제를 실시하세요.",
+          "안전 기준에 따라 권장 희석 배수를 준수하고, 표적 구역 중심 정밀 방제로 불필요한 과다 살포를 방지하세요."
+        ];
+      } else if (predToday >= 19.0) {
+        timing = "3~5일 전 사전 약제 발주";
+        volume = "평시 대비 110~120% 탄력 비축";
+        staff = "권역별 순회 방역조 정상 가동";
+        guides = [
+          "모기 개체수가 증가세로 전환되는 시점입니다. 주간 예보 추이를 확인하며 약제 재고를 평시보다 10~20% 여유 있게 확보하세요.",
+          "모기가 다 자라기 전에 유충(장구벌레)을 미리 없앨 수 있도록 강수 이후 습기와 고인 물이 형성된 구역에 유충 구제제를 우선 투입하세요.",
+          "주요 거래처의 주간 정기 방역 일정을 앞당겨 조율하고 방역 장비를 사전 점검하세요."
+        ];
+      }
+
+      document.getElementById("resultRegionLabel").textContent = `${st.name} · 일평균기온 ${avgTemp
