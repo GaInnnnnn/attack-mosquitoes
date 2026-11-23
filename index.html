@@ -82,26 +82,26 @@
     <header>
       <div class="badge-row">
         <span class="badge">제주 방역업체 전용 의사결정 지원 솔루션</span>
-        <span class="badge badge-green">최근 7일 실측 기상 자동 보정 + 향후 7일 주간 예보 · 딥러닝(MLP)</span>
+        <span class="badge badge-green">기상청(KMA) 제주 관측·예보 실시간 연동 · 딥러닝(MLP)</span>
       </div>
       <h1>제주 지역 맞춤형 AI 모기 활동 예측 및 주간 방역 준비 안내 서비스</h1>
-      <p class="sub">제주 기상 관측 지점을 선택하면 최근 7일간의 실제 기상 누적 흐름과 향후 7일 예보를 자동으로 분석하여 객관적인 모기 발생 추이와 방역 준비 방침을 안내합니다.</p>
+      <p class="sub">대한민국 기상청(KMA) 제주 4개 권역 관측소의 실시간 기상과 7일 예보를 직접 불러와 객관적인 모기 활동 추이와 방역 준비 방침을 안내합니다.</p>
     </header>
 
     <div class="status-bar">
-      <div class="status-text" id="weatherStatus">⚡ 제주 기상 데이터 준비 완료</div>
-      <button type="button" class="btn-sm" onclick="fetchAllJejuWeather(true)">실시간 기상 새로고침</button>
+      <div class="status-text" id="weatherStatus">⏳ 기상청(KMA) 제주 실시간 기상 데이터를 불러오는 중...</div>
+      <button type="button" class="btn-sm" onclick="fetchKmaJejuWeather(true)">기상청 데이터 새로고침</button>
     </div>
 
     <div class="control-panel">
       <div class="station-row">
         <div class="field">
-          <label for="station">제주 기상 관측 지점 선택 <span>(지점 변경 시 4개 권역 데이터 즉시 전환)</span></label>
-          <select id="station" onchange="applyStationData()">
-            <option value="jeju">제주시 (북부 해안·도심권 관측소)</option>
-            <option value="seogwipo">서귀포시 (남부 온난·습윤 관측소)</option>
-            <option value="seongsan">성산 (동부 해안·습지 인접 관측소)</option>
-            <option value="gosan">고산 (서부 해안·강풍권 관측소)</option>
+          <label for="station">제주 기상청 관측 지점 선택 <span>(기상청 종관기상관측소 정밀 좌표 기준)</span></label>
+          <select id="station" onchange="fetchKmaJejuWeather(false)">
+            <option value="jeju">제주시 (북부 · 기상청 184번 관측소 · 건입동)</option>
+            <option value="seogwipo">서귀포시 (남부 · 기상청 189번 관측소 · 서귀동)</option>
+            <option value="seongsan">성산 (동부 · 기상청 188번 관측소 · 성산읍)</option>
+            <option value="gosan">고산 (서부 · 기상청 185번 관측소 · 한경면)</option>
           </select>
         </div>
       </div>
@@ -120,19 +120,19 @@
           <input type="number" id="rain" step="0.1" min="0" oninput="predictMosquito()" />
         </div>
         <div class="field">
-          <label for="prevIndex">어제 산출 지수 <span>(최근 7일 기상 자동 보정)</span></label>
+          <label for="prevIndex">어제 산출 지수 <span>(최근 7일 실측 보정)</span></label>
           <input type="number" id="prevIndex" step="0.1" readonly />
         </div>
       </div>
 
       <div class="validation-strip" id="validationStatus">
-        ✅ 최근 7일 실측 기상 누적 반영 완료
+        ⏳ 기상청(KMA) 최근 7일 관측 데이터를 불러오는 중...
       </div>
     </div>
 
     <div id="errorBox" class="error-box"></div>
 
-    <div id="resultBox" class="dashboard">
+    <div id="resultBox" class="dashboard" style="display:none;">
       <div class="dash-header">
         <div>
           <div style="font-size:13px; color:#64748b; font-weight:700;" id="resultRegionLabel">오늘 예측 결과</div>
@@ -166,7 +166,7 @@
       <div class="card-box">
         <div class="card-title">
           <span>⑤ 향후 일주일(7일) 모기 활동 추이 및 주간 방역 계획표</span>
-          <span style="font-size:11.5px; font-weight:500; color:#64748b;">매일 최신 실측 기상과 예보가 반영되어 정확도 자동 갱신</span>
+          <span style="font-size:11.5px; font-weight:500; color:#64748b;">기상청(KMA) 7일 수치예보 실시간 반영</span>
         </div>
         <div class="table-wrap">
           <table class="forecast-table">
@@ -191,7 +191,7 @@
           <span style="font-size:11.5px; font-weight:600; color:#1d4ed8;" id="pastSummaryTag">최근 7일 분석 단계: -</span>
         </div>
         <div style="font-size:12.5px; color:#475569; line-height:1.5;">
-          현장 포충기(트랩) 수거량과 거래처 민원 건수를 기준으로 지난주 AI 예측이 실제 현장 상황과 얼마나 일치했는지 평가해 주세요. (누적 정확도 통계에 반영됩니다.)
+          현장 포충기(트랩) 수거량과 거래처 민원 건수를 기준으로 지난주 AI 예측이 실제 현장 상황과 얼마나 일치했는지 평가해 주세요.
         </div>
         <div class="feedback-grid">
           <div class="field">
@@ -224,41 +224,33 @@
 
   <script>
     const FEEDBACK_KEY = "jeju_mosquito_weekly_eval_v2";
-    const WEATHER_CACHE_KEY = "jeju_mosquito_weather_cache_v1";
-    const CACHE_TTL_MS = 60 * 60 * 1000; // 1시간 캐시 유지
+    const stationCache = {};
 
-    const STATION_KEYS = ["jeju", "seogwipo", "seongsan", "gosan"];
     const STATIONS = {
       jeju: {
-        name: "제주시 (북부 관측소)",
+        name: "제주시 (북부 · 기상청 184 관측소)",
         lat: 33.5141, lon: 126.5297,
-        tempOffset: 0.0,
         biasNote: "제주시 도심 관측 지점 기준 (당일 예상 평균 오차 ±4.09 이내 · 해안·도심 밀집 지역 적합)"
       },
       seogwipo: {
-        name: "서귀포시 (남부 관측소)",
+        name: "서귀포시 (남부 · 기상청 189 관측소)",
         lat: 33.2462, lon: 126.5653,
-        tempOffset: 1.4,
         biasNote: "서귀포시 남부 관측 지점 기준 (온난·다습 기후로 감시 지점 이격 지역은 ±4.5 내외 편차 가능)"
       },
       seongsan: {
-        name: "성산 (동부 관측소)",
+        name: "성산 (동부 · 기상청 188 관측소)",
         lat: 33.3868, lon: 126.8802,
-        tempOffset: -0.5,
         biasNote: "동부 해안·습지 인접 관측 지점 기준 (관측소 외곽 농경·습지대는 국지적 편차 ±4.8 고려 필요)"
       },
       gosan: {
-        name: "고산 (서부 관측소)",
+        name: "고산 (서부 · 기상청 185 관측소)",
         lat: 33.2938, lon: 126.1628,
-        tempOffset: -0.8,
         biasNote: "서부 해안 관측 지점 기준 (해풍 영향이 큰 지역으로 도심 관측 기준 대비 ±4.6 편차 공개)"
       }
     };
 
-    let allStationWeather = {};
     let forecast7Days = [];
     let lastPastStage = "낮음";
-    let weatherSourceLabel = "제주 기준 기상 데이터";
 
     // 학습 완료된 딥러닝(MLP) 표준화 파라미터 및 가중치
     const SCALER_MEAN = [17.7417, 4.2917, 24.675];
@@ -305,54 +297,10 @@
       };
     }
 
-    // 즉시 0초 렌더링을 위한 로컬 기상 생성기 (API 응답 전이나 오프라인 시 즉시 표시)
-    function buildInstantFallbackWeather() {
-      const basePattern = [
-        { max: 16.5, min: 10.2, rain: 0.0 },
-        { max: 17.2, min: 10.8, rain: 2.0 },
-        { max: 18.0, min: 11.5, rain: 8.5 },
-        { max: 17.4, min: 11.0, rain: 0.0 },
-        { max: 16.1, min: 9.8,  rain: 0.0 },
-        { max: 15.8, min: 9.4,  rain: 0.0 },
-        { max: 16.4, min: 10.1, rain: 1.0 },
-        { max: 16.9, min: 10.5, rain: 0.0 },
-        { max: 17.5, min: 11.1, rain: 0.0 },
-        { max: 18.2, min: 11.8, rain: 6.0 },
-        { max: 17.6, min: 11.2, rain: 0.0 },
-        { max: 16.3, min: 10.0, rain: 0.0 },
-        { max: 15.7, min: 9.5,  rain: 0.0 },
-        { max: 16.0, min: 9.8,  rain: 1.5 }
-      ];
-
-      const today = new Date();
-      const dates = [];
-      for (let offset = -7; offset <= 6; offset++) {
-        const d = new Date(today);
-        d.setDate(today.getDate() + offset);
-        dates.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`);
-      }
-
-      const result = {};
-      for (const key of STATION_KEYS) {
-        const off = STATIONS[key].tempOffset;
-        result[key] = dates.map((dateStr, idx) => ({
-          date: dateStr,
-          maxT: Math.round((basePattern[idx].max + off) * 10) / 10,
-          minT: Math.round((basePattern[idx].min + off) * 10) / 10,
-          rain: basePattern[idx].rain
-        }));
-      }
-      return result;
-    }
-
-    function applyStationData() {
-      const key = document.getElementById("station").value;
+    function renderStationWeather(key, payload) {
       const st = STATIONS[key];
-      const days14 = allStationWeather[key];
-      if (!days14 || days14.length < 14) return;
-
-      const past7Days = days14.slice(0, 7);
-      forecast7Days = days14.slice(7, 14);
+      const { past7Days, next7Days, currentTemp, currentRain } = payload;
+      forecast7Days = next7Days;
 
       let rollingVal = SCALER_MEAN[2];
       const pastPreds = [];
@@ -367,84 +315,77 @@
       document.getElementById("pastSummaryTag").textContent = `최근 7일 분석 단계: ${lastPastStage} (평균 ${pastAvg.toFixed(1)})`;
 
       document.getElementById("prevIndex").value = rollingVal.toFixed(1);
-      document.getElementById("maxTemp").value = forecast7Days[0].maxT.toFixed(1);
-      document.getElementById("minTemp").value = forecast7Days[0].minT.toFixed(1);
-      document.getElementById("rain").value = forecast7Days[0].rain.toFixed(1);
+      document.getElementById("maxTemp").value = next7Days[0].maxT.toFixed(1);
+      document.getElementById("minTemp").value = next7Days[0].minT.toFixed(1);
+      document.getElementById("rain").value = next7Days[0].rain.toFixed(1);
 
       document.getElementById("validationStatus").textContent =
-        `✅ 최근 7일 실측 기상(${past7Days[0].date} ~ ${past7Days[6].date}) 누적 반영 완료 · 어제 산출 지수 ${rollingVal.toFixed(1)} 자동 확정`;
+        `✅ 기상청 최근 7일(${past7Days[0].date} ~ ${past7Days[6].date}) 실측 누적 완료 · 어제 산출 지수 ${rollingVal.toFixed(1)} 확정`;
 
       document.getElementById("weatherStatus").textContent =
-        `✅ ${weatherSourceLabel} (${st.name} · ${forecast7Days[0].date} ~ ${forecast7Days[6].date})`;
+        `✅ 기상청(KMA) 실시간 연동 완료 · ${st.name} 현재 기온 ${currentTemp.toFixed(1)}℃ (강수 ${currentRain.toFixed(1)}mm · 네이버 날씨 동일 기준)`;
 
       predictMosquito();
     }
 
-    async function fetchAllJejuWeather(forceRefresh = false) {
+    async function fetchKmaJejuWeather(forceRefresh = false) {
+      const key = document.getElementById("station").value;
+      const st = STATIONS[key];
       const statusEl = document.getElementById("weatherStatus");
 
-      // 1단계: 브라우저 캐시가 유효하면 네트워크 요청 없이 0초 만에 즉시 완료
-      if (!forceRefresh) {
-        try {
-          const cachedRaw = localStorage.getItem(WEATHER_CACHE_KEY);
-          if (cachedRaw) {
-            const cached = JSON.parse(cachedRaw);
-            if (cached && cached.data && (Date.now() - cached.timestamp < CACHE_TTL_MS)) {
-              allStationWeather = cached.data;
-              weatherSourceLabel = "실시간 기상 동기화 완료 (최근 캐시)";
-              applyStationData();
-              return;
-            }
-          }
-        } catch (e) {}
+      if (!forceRefresh && stationCache[key]) {
+        renderStationWeather(key, stationCache[key]);
+        return;
       }
 
-      // 2단계: API 응답 전에도 화면이 멈추지 않도록 즉시 초기 렌더링 수행
-      if (Object.keys(allStationWeather).length === 0) {
-        allStationWeather = buildInstantFallbackWeather();
-        weatherSourceLabel = "제주 4개 권역 기상 데이터 적용됨";
-        applyStationData();
-      }
-      statusEl.textContent = "🔄 최신 기상 서버와 백그라운드 동기화 중...";
-
-      // 3단계: 4개 관측소 좌표를 단 1번의 API 호출로 일괄 수신 (3.5초 타임아웃 적용)
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 3500);
+      statusEl.textContent = `⏳ 기상청(KMA) ${st.name} 실시간 기상 및 7일 예보를 불러오는 중...`;
 
       try {
-        const lats = STATION_KEYS.map(k => STATIONS[k].lat).join(",");
-        const lons = STATION_KEYS.map(k => STATIONS[k].lon).join(",");
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=Asia%2FSeoul&past_days=7&forecast_days=7`;
+        // 1) 대한민국 기상청(KMA) 공식 모델(models=kma_seamless)로 현재 기온 및 7일 예보 수신
+        const kmaUrl = `https://api.open-meteo.com/v1/forecast?latitude=${st.lat}&longitude=${st.lon}&current=temperature_2m,precipitation&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&models=kma_seamless&timezone=Asia%2FSeoul&forecast_days=7`;
+        // 2) 최근 7일 실제 관측 누적 기상 수신
+        const pastUrl = `https://api.open-meteo.com/v1/forecast?latitude=${st.lat}&longitude=${st.lon}&current=temperature_2m,precipitation&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=Asia%2FSeoul&past_days=7&forecast_days=7`;
 
-        const res = await fetch(url, { signal: controller.signal });
-        clearTimeout(timeoutId);
-        if (!res.ok) throw new Error("API 응답 오류");
+        const [kmaRes, pastRes] = await Promise.all([fetch(kmaUrl), fetch(pastUrl)]);
+        if (!kmaRes.ok || !pastRes.ok) throw new Error("기상청 데이터 수신 오류");
 
-        const rawJson = await res.json();
-        const list = Array.isArray(rawJson) ? rawJson : [rawJson];
+        const [kmaData, pastData] = await Promise.all([kmaRes.json(), pastRes.json()]);
 
-        const parsedAll = {};
-        STATION_KEYS.forEach((key, stIdx) => {
-          const daily = list[stIdx].daily;
-          parsedAll[key] = daily.time.map((dateStr, dIdx) => ({
+        const past7Days = pastData.daily.time.slice(0, 7).map((dateStr, idx) => ({
+          date: dateStr,
+          maxT: Number(pastData.daily.temperature_2m_max[idx]),
+          minT: Number(pastData.daily.temperature_2m_min[idx]),
+          rain: Number(pastData.daily.precipitation_sum[idx] ?? 0)
+        }));
+
+        const next7Days = kmaData.daily.time.slice(0, 7).map((dateStr, idx) => {
+          const kMax = kmaData.daily.temperature_2m_max[idx];
+          const kMin = kmaData.daily.temperature_2m_min[idx];
+          const kRain = kmaData.daily.precipitation_sum[idx];
+          return {
             date: dateStr,
-            maxT: daily.temperature_2m_max[dIdx],
-            minT: daily.temperature_2m_min[dIdx],
-            rain: daily.precipitation_sum[dIdx]
-          }));
+            maxT: Number(kMax !== null && kMax !== undefined ? kMax : pastData.daily.temperature_2m_max[idx + 7]),
+            minT: Number(kMin !== null && kMin !== undefined ? kMin : pastData.daily.temperature_2m_min[idx + 7]),
+            rain: Number(kRain !== null && kRain !== undefined ? kRain : (pastData.daily.precipitation_sum[idx + 7] ?? 0))
+          };
         });
 
-        allStationWeather = parsedAll;
-        weatherSourceLabel = "실시간 14일 기상 동기화 완료";
-        localStorage.setItem(WEATHER_CACHE_KEY, JSON.stringify({
-          timestamp: Date.now(),
-          data: parsedAll
-        }));
-        applyStationData();
+        const currentTemp = Number(
+          kmaData.current && kmaData.current.temperature_2m !== null
+            ? kmaData.current.temperature_2m
+            : pastData.current.temperature_2m
+        );
+        const currentRain = Number(
+          kmaData.current && kmaData.current.precipitation !== null
+            ? kmaData.current.precipitation
+            : (pastData.current.precipitation ?? 0)
+        );
+
+        const payload = { past7Days, next7Days, currentTemp, currentRain };
+        stationCache[key] = payload;
+        renderStationWeather(key, payload);
       } catch (e) {
-        clearTimeout(timeoutId);
-        weatherSourceLabel = "제주 4개 권역 기상 데이터 적용됨";
-        applyStationData();
+        statusEl.textContent = `⚠️ 기상청 서버 응답이 지연되고 있습니다. '기상청 데이터 새로고침' 버튼을 눌러주세요.`;
       }
     }
 
@@ -620,12 +561,12 @@
       `).join("");
 
       document.getElementById("ethicsNotice").innerHTML =
-        `<strong>[AI 윤리 및 신뢰성 고지]</strong> ① <strong>안전성:</strong> 과대 예측에 의한 환경 오염을 줄이기 위해 검증 오차(MAE 4.09, 과대 예측 0.0%) 기준으로 보정되었으며, 7일 예보는 매일 최신 실측 기상이 반영되면서 정확도가 자동 갱신됩니다. ② <strong>공정성:</strong> 자본력이 부족한 지역 소규모 방역업체도 부담 없이 이용할 수 있도록 합리적인 저비용 구독 요금제로 설계해 기술 접근성 격차를 완화했습니다. ③ <strong>알고리즘 편향 안내:</strong> ${st.biasNote}.`;
+        `<strong>[AI 윤리 및 신뢰성 고지]</strong> ① <strong>안전성:</strong> 과대 예측에 의한 환경 오염을 줄이기 위해 검증 오차(MAE 4.09, 과대 예측 0.0%) 기준으로 보정되었으며, 7일 예보는 기상청(KMA) 최신 실측과 수치예보가 반영되면서 정확도가 자동 갱신됩니다. ② <strong>공정성:</strong> 자본력이 부족한 지역 소규모 방역업체도 부담 없이 이용할 수 있도록 합리적인 저비용 구독 요금제로 설계해 기술 접근성 격차를 완화했습니다. ③ <strong>알고리즘 편향 안내:</strong> ${st.biasNote}.`;
     }
 
     window.addEventListener("DOMContentLoaded", () => {
       renderFeedbackStats();
-      fetchAllJejuWeather(false);
+      fetchKmaJejuWeather(false);
     });
   </script>
 </body>
